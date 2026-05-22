@@ -14,7 +14,7 @@ Test cases:
 
 class TestDeleteBookingAuth:
 
-    def test_delete_booking_auth_basic_valid(self, api_client, auth_token, unique_booking):
+    def test_delete_booking_auth_basic_valid(self, api_client, unique_booking):
         """
         Valid DELETE request
         Authorization: Basic header is used

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from time import time
 
-from schemas.auth import AuthRequest
+from tests.schemas.auth import AuthRequest
 
 
 BASE_URL = "https://restful-booker.herokuapp.com"
