@@ -9,9 +9,6 @@ Returns status code 201
 Test cases:
     Valid request:
         - Delete booking specifying valid ID
-    Authorization:
-        - Missing token
-        - Invalid token
     Negative:
         - Booking ID invalid (non existing)
         - Booking ID not provided
