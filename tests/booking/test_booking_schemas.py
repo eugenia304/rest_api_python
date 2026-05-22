@@ -1,10 +1,8 @@
-import pytest
-
 from datetime import datetime, timedelta
 from time import time
 from pydantic import TypeAdapter
 
-from schemas.booking import BookingIdItem, Booking, CreateBookingResponse
+from src.schemas.booking import BookingIdItem, Booking, CreateBookingResponse
 
 
 """

@@ -4,6 +4,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class BookingDates(BaseModel):
+    """
+    checkin and checkout fields
+
+    the validator explicitly checks that the checkin > checkout in the client request
+    there is a bug in the system and there is no actual validation on this
+    """
     model_config = ConfigDict(extra="forbid")
 
     checkin: date
@@ -18,6 +24,9 @@ class BookingDates(BaseModel):
 
 
 class Booking(BaseModel):
+    """
+    Full booking details
+    """
     model_config = ConfigDict(extra="forbid")
 
     firstname: str = Field(..., min_length=1)
@@ -33,24 +42,13 @@ class Booking(BaseModel):
 # -------------------------
 
 class BookingIdItem(BaseModel):
-    """Represents a single item returned by GET /booking (List)"""
+    """A single item returned by GET /booking"""
     bookingid: int
 
 
 class CreateBookingResponse(BaseModel):
-    """Represents the wrapping structure returned by POST /booking"""
+    """Structure returned by POST /booking"""
     model_config = ConfigDict(extra="forbid")
 
     bookingid: int
     booking: Booking
-
-
-class APIErrorResponse(BaseModel):
-    """
-    Standard structure for bad inputs. 
-    Note: Restful-Booker often returns strings, but standard APIs use objects.
-    """
-    model_config = ConfigDict(extra="forbid")
-
-    error: str
-    message: Optional[str] = None

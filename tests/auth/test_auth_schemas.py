@@ -1,6 +1,4 @@
-import pytest
-
-from schemas.auth import AuthRequest, AuthSuccessResponse, AuthErrorResponse
+from src.schemas.auth import AuthSuccessResponse, AuthErrorResponse
 
 
 class TestAuthSchemas:
