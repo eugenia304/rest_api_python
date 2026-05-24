@@ -13,4 +13,6 @@ allure-report/
 # Virtual Environments
 venv/
 .venv/
+
+# Editor Configurations
 .vscode/
