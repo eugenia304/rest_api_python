@@ -1,23 +1,22 @@
 import pytest
+import os
 
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from time import time
 
 from src.client import APIClient
-from src.schemas.auth import AuthRequest
 
 
-BASE_URL = "https://restful-booker.herokuapp.com"
 load_dotenv()
 
 
 @pytest.fixture(scope="session")
-def api_client():
+def api_client(pytestconfig):
     """
     Shared API client for all tests
     """
-    return APIClient(BASE_URL)
+    return APIClient(pytestconfig.getoption('base_url'))
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -25,20 +24,20 @@ def auth_token(api_client):
     """
     Returns the generated token
     """
-    payload = AuthRequest(
-        username="admin",
-        password="password123"
-    )
+    payload = {
+        'username': os.getenv('USERNAME'),
+        'password': os.getenv('PASSWORD')
+    }
+
     headers = {
-        'accept': '*/*',
-        'Referer': '',
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
 
     response = api_client.post(
         "/auth",
         headers=headers,
-        json=payload.model_dump()
+        json=payload
     )
     token = response.json().get('token')
 
@@ -46,7 +45,7 @@ def auth_token(api_client):
 
 
 @pytest.fixture
-def unique_booking(api_client, auth_token):
+def unique_booking(request, api_client, auth_token):
     # Timestamp used to guarantee a unique name
     unique_suffix = str(int(time()))
     date_start = (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d")
@@ -78,8 +77,14 @@ def unique_booking(api_client, auth_token):
     # Provide the ID and the unique payload to the test
     yield {"id": booking_id, "data": booking_data["booking"]}
 
-    # Deleting the booking after the test
-    api_client.delete(f"/booking/{booking_id}", headers=auth_headers)
+    if request.node.get_closest_marker("skip_cleanup"):
+        return  # Exit without deleting a booking
+
+    try:
+        # Deleting the booking after the test
+        api_client.delete(f"/booking/{booking_id}", headers=auth_headers)
+    except Exception as e:
+        print(f"\nBooking was not deleted: {e}")
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -97,5 +102,5 @@ def pytest_runtest_makereport(item, call):
         # Look for the api_client fixture or request library hooks inside the test
         if "api_client" in item.funcargs:
             print("\n" + "="*60)
-            print("🚨 AUTOMATED API NETWORK FAILURE TRACE 🚨")
+            print("FAILURE")
             print("="*60)

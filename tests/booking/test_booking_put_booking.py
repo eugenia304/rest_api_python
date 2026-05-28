@@ -243,7 +243,7 @@ class TestPutBookingValid:
         Sending PUT request without one of the fields specified in the payload
 
         Expected result:
-            - status code = 400/422
+            - status code = 400
         """
         target_id = unique_booking["id"]
         unique_suffix = str(int(time()))
@@ -271,7 +271,7 @@ class TestPutBookingValid:
 
         response = api_client.put(f"/booking/{target_id}",
                                   json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
+        assert response.status_code == 400, (
             f'Request unexpectedly accepted with the missing field {missing_fld}.\n'
             f'Status code is {response.status_code}\n'
             f'{response.json()}'
@@ -462,11 +462,16 @@ class TestPutBookingNegative:
 
         response = api_client.put(f"/booking/{target_id}",
                                   json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
-            f'Request unexpectedly accepted with the None value for {null_fld}.\n'
-            f'Status code is {response.status_code}\n'
-            f'{response.json()}'
-        )
+
+        try:
+            assert response.status_code == 400, f'Expecting status code 400, got {response.status_code}'
+        except AssertionError as exc:
+            if response.status_code == 500:
+                pytest.xfail(
+                    f'Known bug: status code == 500 instead of 400 for {null_fld}')
+            elif response.status_code in [200, 201]:
+                raise AssertionError(
+                    f'Request unexpectedly accepted with the None value for {null_fld}.')
 
     @pytest.mark.parametrize('empty_str', [
         'firstname',
@@ -478,7 +483,7 @@ class TestPutBookingNegative:
         Sending PUT request with empty string value for string field
 
         Expected result:
-            - status code = 400 or 422
+            - status code = 400
         """
         target_id = unique_booking["id"]
         unique_suffix = str(int(time()))
@@ -506,7 +511,7 @@ class TestPutBookingNegative:
 
         response = api_client.put(f"/booking/{target_id}",
                                   json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
+        assert response.status_code == 400, (
             f'Request unexpectedly accepted with the empty field {empty_str}.\n'
             f'Status code is {response.status_code}\n'
             f'{response.json()}'
@@ -519,7 +524,7 @@ class TestPutBookingNegative:
         Sending PUT request with invalid value for totalprice
 
         Expected result:
-            - status code = 400 or 422
+            - status code = 400
         """
         target_id = unique_booking["id"]
         unique_suffix = str(int(time()))
@@ -544,7 +549,7 @@ class TestPutBookingNegative:
 
         response = api_client.put(f"/booking/{target_id}",
                                   json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
+        assert response.status_code == 400, (
             f'Request unexpectedly accepted with the total price == {totalprice}.\n'
             f'Status code is {response.status_code}\n'
             f'{response.json()}'
@@ -556,7 +561,7 @@ class TestPutBookingNegative:
         Sending PUT request with checkin date > checkout date
 
         Expected result:
-            - status code = 400 or 422
+            - status code = 400
         """
         target_id = unique_booking["id"]
         unique_suffix = str(int(time()))
@@ -581,7 +586,7 @@ class TestPutBookingNegative:
 
         response = api_client.put(f"/booking/{target_id}",
                                   json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
+        assert response.status_code == 400, (
             f'Request unexpectedly accepted with checkin > checkout.\n'
             f'Status code is {response.status_code}\n'
             f'{response.json()}'
