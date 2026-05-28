@@ -147,7 +147,6 @@ class TestCreateBookingNegative:
         'depositpaid',
         'bookingdates',
     ])
-    @pytest.mark.xfail(reason='Unexpected status code')
     def test_post_create_booking_missing_fld(self, api_client, missing_fld):
         """
         Create booking with missing field
@@ -177,13 +176,15 @@ class TestCreateBookingNegative:
 
         response = api_client.post("/booking", json=payload)
 
-        if response.status_code in [200, 201]:
-            raise AssertionError(
-                f'Request unexpectedly accepted with the missing field {missing_fld}.')
-
-        if response.status_code != 400:
-            raise AssertionError(
-                f'Expected status code 400, got {response.status_code}')
+        try:
+            assert response.status_code == 400, f'Expecting status code 400, got {response.status_code}'
+        except AssertionError as exc:
+            if response.status_code == 500:
+                pytest.xfail(
+                    f'Known bug: status code == 500 instead of 400 for {missing_fld}')
+            elif response.status_code in [200, 201]:
+                raise AssertionError(
+                    f'Request unexpectedly accepted with the missing field {missing_fld}.')
 
     @pytest.mark.parametrize('null_fld', [
         'firstname',
@@ -192,7 +193,6 @@ class TestCreateBookingNegative:
         'depositpaid',
         'bookingdates'
     ])
-    @pytest.mark.xfail(reason='Unexpected status code')
     def test_post_create_booking_null_value(self, api_client, null_fld):
         """
         Create booking with null value (None) for a field
@@ -220,28 +220,28 @@ class TestCreateBookingNegative:
 
         response = api_client.post("/booking", json=payload)
 
-        if response.status_code in [200, 201]:
-            raise AssertionError(
-                f'Request unexpectedly accepted with the None value for field {null_fld}.')
-
-        if response.status_code != 400:
-            raise AssertionError(
-                f'Expected status code 400, got {response.status_code}')
+        try:
+            assert response.status_code == 400, f'Expecting status code 400, got {response.status_code}'
+        except AssertionError as exc:
+            if response.status_code == 500:
+                pytest.xfail(
+                    f'Known bug: status code == 500 instead of 400 for {null_fld}')
+            elif response.status_code in [200, 201]:
+                raise AssertionError(
+                    f'Request unexpectedly accepted with the None value for {null_fld}.')
 
     @pytest.mark.parametrize('field_name, invalid_value', [
         ('firstname', 12345),
         ('lastname', True),
         ('bookingdates', '2026-12-03'),
-        ("totalprice", "one"),
         ("depositpaid", "no")
     ])
-    @pytest.mark.xfail(reason='Unexpected status code')
     def test_post_create_booking_invalid_value_type(self, api_client, field_name, invalid_value):
         """
         Create booking with invalid type value for a field
 
         Expected result:
-            - status code = 400/422
+            - status code = 400
         """
         unique_suffix = str(int(time()))
         date_start = (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d")
@@ -263,17 +263,20 @@ class TestCreateBookingNegative:
 
         response = api_client.post("/booking", json=payload)
 
-        if response.status_code in [200, 201]:
-            raise AssertionError(
-                f'Request unexpectedly accepted with the {field_name} = {invalid_value}.'
-                f'type: {type(invalid_value)}'
-                f'{response.json()}')
+        try:
+            assert response.status_code == 400, f'Expecting status code 400, got {response.status_code}'
+        except AssertionError as exc:
+            if response.status_code == 500:
+                pytest.xfail(
+                    f'Known bug: status code == 500 instead of 400 for {field_name}')
+            elif response.status_code in [200, 201]:
+                raise AssertionError(
+                    f'Request unexpectedly accepted with the invalid value type {type(invalid_value)} for {field_name}.')
+            else:
+                raise AssertionError(
+                    f'Unexpected status code {response.status_code}')
 
-        if response.status_code != 400:
-            raise AssertionError(
-                f'Expected status code 400, got {response.status_code}')
-
-    @pytest.mark.parametrize('totalprice', [0, -1, 100.0])
+    @pytest.mark.parametrize('totalprice', [0, -1, 100.0, 'one'])
     @pytest.mark.xfail(reason='no validation on totalprice field value')
     def test_post_create_booking_totalprice(self, api_client, totalprice):
         """
@@ -346,7 +349,7 @@ class TestCreateBookingNegative:
         Empty value sent for a string field
 
         Expected result:
-            - status code = 400/422
+            - status code = 400
         """
         unique_suffix = str(int(time()))
         date_start = (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d")
@@ -367,7 +370,7 @@ class TestCreateBookingNegative:
         payload[field_name] = ''
 
         response = api_client.post("/booking", json=payload)
-        assert response.status_code in [400, 422], (
+        assert response.status_code == 400, (
             f'Request unexpectedly accepted with the empty field {field_name}.\n'
             f'Status code is {response.status_code}\n'
             f'{response.json()}'

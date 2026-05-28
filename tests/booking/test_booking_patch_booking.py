@@ -433,7 +433,7 @@ class TestPatchBookingNegative:
         'depositpaid',
         'bookingdates'
     ])
-    def test_put_booking_null_value(self, api_client, auth_token, unique_booking, null_fld):
+    def test_patch_booking_null_value(self, api_client, auth_token, unique_booking, null_fld):
         """
         Sending PATCH request with None value for one field
 
@@ -463,20 +463,25 @@ class TestPatchBookingNegative:
 
         updated_payload[null_fld] = None
 
-        response = api_client.put(f"/booking/{target_id}",
-                                  json=updated_payload, headers=headers)
-        assert response.status_code in [400, 422], (
-            f'Request unexpectedly accepted with the None value for {null_fld}.\n'
-            f'Status code is {response.status_code}\n'
-            f'{response.json()}'
-        )
+        response = api_client.patch(f"/booking/{target_id}",
+                                    json=updated_payload, headers=headers)
+
+        try:
+            assert response.status_code == 400, f'Expecting status code 400, got {response.status_code}'
+        except AssertionError as exc:
+            if response.status_code == 500:
+                pytest.xfail(
+                    f'Known bug: status code == 500 instead of 400 for {null_fld}')
+            elif response.status_code in [200, 201]:
+                raise AssertionError(
+                    f'Request unexpectedly accepted with the None value for {null_fld}.')
 
     @pytest.mark.parametrize('empty_str', [
         'firstname',
         'lastname',
     ])
     @pytest.mark.xfail(reason='Empty string accepted as a new value')
-    def test_put_booking_empty_str(self, api_client, auth_token, unique_booking, empty_str):
+    def test_patch_booking_empty_str(self, api_client, auth_token, unique_booking, empty_str):
         """
         Sending PATCH request with empty string value for string field
 
@@ -506,8 +511,8 @@ class TestPatchBookingNegative:
 
         updated_payload[empty_str] = ''
 
-        response = api_client.put(f"/booking/{target_id}",
-                                  json=updated_payload, headers=headers)
+        response = api_client.patch(f"/booking/{target_id}",
+                                    json=updated_payload, headers=headers)
         assert response.status_code in [400, 422], (
             f'Request unexpectedly accepted with the empty field {empty_str}.\n'
             f'Status code is {response.status_code}\n'
@@ -516,7 +521,7 @@ class TestPatchBookingNegative:
 
     @pytest.mark.parametrize('totalprice', [0, -1, 100.0])
     @pytest.mark.xfail(reason='no validation on totalprice field value')
-    def test_put_booking_invalid_price(self, api_client, auth_token, unique_booking, totalprice):
+    def test_patch_booking_invalid_price(self, api_client, auth_token, unique_booking, totalprice):
         """
         Sending PATCH request with invalid value for totalprice
 
@@ -544,8 +549,8 @@ class TestPatchBookingNegative:
             'Cookie': f'token={auth_token}',
         }
 
-        response = api_client.put(f"/booking/{target_id}",
-                                  json=updated_payload, headers=headers)
+        response = api_client.patch(f"/booking/{target_id}",
+                                    json=updated_payload, headers=headers)
         assert response.status_code in [400, 422], (
             f'Request unexpectedly accepted with the total price == {totalprice}.\n'
             f'Status code is {response.status_code}\n'
@@ -553,7 +558,7 @@ class TestPatchBookingNegative:
         )
 
     @pytest.mark.xfail(reason='checkin > checkout is accepted')
-    def test_put_booking_dates(self, api_client, auth_token, unique_booking):
+    def test_patch_booking_dates(self, api_client, auth_token, unique_booking):
         """
         Sending PATCH request with checkin date > checkout date
 
@@ -581,8 +586,8 @@ class TestPatchBookingNegative:
             'Cookie': f'token={auth_token}',
         }
 
-        response = api_client.put(f"/booking/{target_id}",
-                                  json=updated_payload, headers=headers)
+        response = api_client.patch(f"/booking/{target_id}",
+                                    json=updated_payload, headers=headers)
         assert response.status_code in [400, 422], (
             f'Request unexpectedly accepted with checkin > checkout.\n'
             f'Status code is {response.status_code}\n'

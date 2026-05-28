@@ -42,7 +42,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload, headers=headers)
         assert response.status_code == 200, f'Expecting status code 200, got {response.status_code}'
 
-    def test_put_booking_auth_valid_basic_and_token(self, api_client, auth_token, unique_booking):
+    def test_patch_booking_auth_valid_basic_and_token(self, api_client, auth_token, unique_booking):
         """
         Valid PATCH request
         Authorization: Basic and Cookie: token headers are provided
@@ -68,7 +68,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload, headers=headers)
         assert response.status_code == 200, f'Expecting status code 200, got {response.status_code}'
 
-    def test_put_booking_auth_valid_basic_invalid_token(self, api_client, unique_booking):
+    def test_patch_booking_auth_valid_basic_invalid_token(self, api_client, unique_booking):
         """
         Valid PATCH request
         Authorization: Basic and Cookie: token headers are provided
@@ -95,7 +95,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload, headers=headers)
         assert response.status_code == 200, f'Expecting status code 200, got {response.status_code}'
 
-    def test_put_booking_auth_invalid_basic_valid_token(self, api_client, auth_token, unique_booking):
+    def test_patch_booking_auth_invalid_basic_valid_token(self, api_client, auth_token, unique_booking):
         """
         Valid PATCH request
         Authorization: Basic and Cookie: token headers are provided
@@ -122,7 +122,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload, headers=headers)
         assert response.status_code == 200, f'Expecting status code 200, got {response.status_code}'
 
-    def test_put_booking_auth_invalid_basic_no_token(self, api_client, unique_booking):
+    def test_patch_booking_auth_invalid_basic_no_token(self, api_client, unique_booking):
         """
         Valid PATCH request
         Authorization: Basic header contains invalid value
@@ -148,7 +148,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload, headers=headers)
         assert response.status_code == 403, f'Expecting status code 403, got {response.status_code}'
 
-    def test_put_booking_missing_token_and_basic(self, api_client, unique_booking):
+    def test_patch_booking_missing_token_and_basic(self, api_client, unique_booking):
         """
         Valid PATCH request with missing auth token
 
@@ -168,7 +168,7 @@ class TestAuthBasicPutBooking:
                                     json=updated_payload)
         assert response.status_code == 403, f'Expecting status code 403, got {response.status_code}'
 
-    def test_put_booking_invalid_token_no_basic(self, api_client, unique_booking):
+    def test_patch_booking_invalid_token_no_basic(self, api_client, unique_booking):
         """
         Valid PATCH request with invalid auth token
 
